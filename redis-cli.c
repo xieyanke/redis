@@ -48,10 +48,10 @@
 
 static struct config {
     char *hostip;
-    int hostport;
-    long repeat;
+    int hostport; 
+    long repeat; 
     int dbnum;
-    int interactive;
+    int interactive;  
     char *auth;
 } config;
 
@@ -376,39 +376,73 @@ static int cliSendCommand(int argc, char **argv) {
 }
 
 static int parseOptions(int argc, char **argv) {
+    // 声明一个变量用于遍历命令行参数时进行计数
     int i;
 
+    // for 循环遍历索引位置从 1 开始的所有命令行参数
     for (i = 1; i < argc; i++) {
+        // lastarg 变量其实启动一个 bool 作用，用于判断当前参数是否是最后一个参数
         int lastarg = i==argc-1;
 
+        // if 判断当前命令行参数如果为 -h，而且不是最后一个参数则进入 if 代码块
         if (!strcmp(argv[i],"-h") && !lastarg) {
+            // 申请一个 32 字节宽度的内存用于存储 ip 字符串
             char *ip = zmalloc(32);
+        
+            // if 判断 anetResolve 函数是否可以正确的将 -h 参数的下一个参数解析为网络 ip，如果错误则进入 if 代码块
             if (anetResolve(NULL,argv[i+1],ip) == ANET_ERR) {
+                // 输出无法解析 -h 参数
                 printf("Can't resolve %s\n", argv[i]);
+                // 以状态码 1 退出进程
                 exit(1);
             }
+            // 为结构体 config 字段 hostip 赋值
             config.hostip = ip;
+            // 变量 i 自增 1，令 for 循环跳过 -h 命令行参数的下一个参数进行遍历
             i++;
+
+        // else if 判断如果当前命令行参数为 -h，且是最后一个命令行参数则进入 else if 代码块
         } else if (!strcmp(argv[i],"-h") && lastarg) {
+            // 调用 usage 函数，输出帮助信息
             usage();
+        
+        // else if 判断如果当前命令行参数为 -p，且不是最后一个命令行参数则进入 else if 代码块
         } else if (!strcmp(argv[i],"-p") && !lastarg) {
+            // 将 -p 命令行参数的下一个参数转换为 int 类型，并赋值给 config 结构体的 hostport 字段
             config.hostport = atoi(argv[i+1]);
+            // 变量 i 自增 1，令 for 循环跳过 -p 命令行参数的下一个参数进行遍历
             i++;
+
+        // else if 判断当前命令行参数如果是 -r，且不是最后一个命令行参数则进入 else if 代码块
         } else if (!strcmp(argv[i],"-r") && !lastarg) {
+            // 将 -r 命令行参数的下一个参数转换为 long long int 类型，并赋值给 config 结构体的 repeat 字段 
             config.repeat = strtoll(argv[i+1],NULL,10);
+            // 变量 i 自增 1，令 for 循环跳过 -r 命令行参数的下一个参数进行遍历
             i++;
+        // else if 判断当前命令行参数如果是 -n，且不是最后一个命令行参数则进入 else if 代码块
         } else if (!strcmp(argv[i],"-n") && !lastarg) {
+            // 将 -n 命令行参数的下一个参数转换为 int 类型，并赋值给 config 结构体的 dbnum 字段
             config.dbnum = atoi(argv[i+1]);
+            // 变量 i 自增 1，令 for 循环跳过 -n 命令行参数的下一个参数进行遍历
             i++;
+        // else if 判断当前命令行参数如果是 -a，且不是最后一个命令行参数则进入 else if 代码块
         } else if (!strcmp(argv[i],"-a") && !lastarg) {
+            // 将 -a 命令行参数的下一个参数赋值给 config 结构体的 auth 字段    
             config.auth = argv[i+1];
+            // 变量 i 自增 1，令 for 循环跳过 -a 命令行参数的下一个参数进行遍历
             i++;
+        
+        // else if 判断当前命令行参数如果是 -i 则进入 else if 代码块
         } else if (!strcmp(argv[i],"-i")) {
+            // 将结构体 config 的字段 interactive 赋值为 1
             config.interactive = 1;
         } else {
+            // 其他判断结果则中断 for 循环
             break;
         }
     }
+
+    // 返回命令行参数的总数
     return i;
 }
 
@@ -430,6 +464,9 @@ static sds readArgFromStdin(void) {
 }
 
 static void usage() {
+    /**
+     * 输出帮助信息到标准错误输出
+    */
     fprintf(stderr, "usage: redis-cli [-h host] [-p port] [-a authpw] [-r repeat_times] [-n db_num] [-i] cmd arg1 arg2 arg3 ... argN\n");
     fprintf(stderr, "usage: echo \"argN\" | redis-cli [-h host] [-a authpw] [-p port] [-r repeat_times] [-n db_num] cmd arg1 arg2 ... arg(N-1)\n");
     fprintf(stderr, "\nIf a pipe from standard input is detected this data is used as last argument.\n\n");
@@ -437,6 +474,7 @@ static void usage() {
     fprintf(stderr, "example: redis-cli get my_passwd\n");
     fprintf(stderr, "example: redis-cli -r 100 lpush mylist x\n");
     fprintf(stderr, "\nRun in interactive mode: redis-cli -i or just don't pass any command\n");
+    // 以状态码 1 退出进程
     exit(1);
 }
 
@@ -516,7 +554,7 @@ int main(int argc, char **argv) {
 
     if (argc == 0 || config.interactive == 1) repl();
 
-    argvcopy = convertToSds(argc, argv);
+    argvcopy = convertToSds(argc, argv);v
 
     /* Read the last argument from stdandard input if needed */
     if ((rc = lookupCommand(argv[0])) != NULL) {
